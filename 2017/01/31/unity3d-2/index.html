@@ -68,7 +68,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="unity," />
 
 
 
@@ -84,15 +84,22 @@
 
 
 
-<meta name="description" content="技术小白初次使用，欢迎交流">
-<meta property="og:type" content="website">
-<meta property="og:title" content="心跳乱了脚步">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="unity3d开发总结（二）– 玩家脚本解读Snake脚本是游戏的核心脚本之一，主要用于控制玩家的行为，包括蛇的运动，加速，吃食物，身体变长，击杀AI，死亡等一系列行为。
+初始化InvokeRepeating(&amp;quot;Move&amp;quot;, 0f, Time.deltaTime );
+这个函数表示开始执行后的0秒后调用Move()函数，并以每帧的时间间隔重复执行该函数。其实这里将Move()中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="unity3d-2">
+<meta property="og:url" content="http://yoursite.com/2017/01/31/unity3d-2/index.html">
 <meta property="og:site_name" content="心跳乱了脚步">
-<meta property="og:description" content="技术小白初次使用，欢迎交流">
+<meta property="og:description" content="unity3d开发总结（二）– 玩家脚本解读Snake脚本是游戏的核心脚本之一，主要用于控制玩家的行为，包括蛇的运动，加速，吃食物，身体变长，击杀AI，死亡等一系列行为。
+初始化InvokeRepeating(&amp;quot;Move&amp;quot;, 0f, Time.deltaTime );
+这个函数表示开始执行后的0秒后调用Move()函数，并以每帧的时间间隔重复执行该函数。其实这里将Move()中">
+<meta property="og:updated_time" content="2017-02-04T15:43:50.782Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="心跳乱了脚步">
-<meta name="twitter:description" content="技术小白初次使用，欢迎交流">
+<meta name="twitter:title" content="unity3d-2">
+<meta name="twitter:description" content="unity3d开发总结（二）– 玩家脚本解读Snake脚本是游戏的核心脚本之一，主要用于控制玩家的行为，包括蛇的运动，加速，吃食物，身体变长，击杀AI，死亡等一系列行为。
+初始化InvokeRepeating(&amp;quot;Move&amp;quot;, 0f, Time.deltaTime );
+这个函数表示开始执行后的0秒后调用Move()函数，并以每帧的时间间隔重复执行该函数。其实这里将Move()中">
 
 
 
@@ -110,7 +117,7 @@
   };
 </script>
 
-  <title> 心跳乱了脚步 </title>
+  <title> unity3d-2 | 心跳乱了脚步 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -131,9 +138,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-left 
-   page-home 
- ">
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -220,9 +225,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
   
@@ -242,10 +247,7 @@
             
             
               
-                
-                <a class="post-title-link" href="/2017/01/31/unity3d-2/" itemprop="url">
-                  unity3d-2
-                </a>
+                unity3d-2
               
             
           </h1>
@@ -320,9 +322,7 @@
       
 
       
-        
-          
-            <h2 id="unity3d开发总结（二）–-玩家脚本解读"><a href="#unity3d开发总结（二）–-玩家脚本解读" class="headerlink" title="unity3d开发总结（二）– 玩家脚本解读"></a>unity3d开发总结（二）– 玩家脚本解读</h2><p>Snake脚本是游戏的核心脚本之一，主要用于控制玩家的行为，包括蛇的运动，加速，吃食物，身体变长，击杀AI，死亡等一系列行为。</p>
+        <h2 id="unity3d开发总结（二）–-玩家脚本解读"><a href="#unity3d开发总结（二）–-玩家脚本解读" class="headerlink" title="unity3d开发总结（二）– 玩家脚本解读"></a>unity3d开发总结（二）– 玩家脚本解读</h2><p>Snake脚本是游戏的核心脚本之一，主要用于控制玩家的行为，包括蛇的运动，加速，吃食物，身体变长，击杀AI，死亡等一系列行为。</p>
 <h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><pre><code>InvokeRepeating(&quot;Move&quot;, 0f, Time.deltaTime );
 </code></pre><p>这个函数表示开始执行后的0秒后调用Move()函数，并以每帧的时间间隔重复执行该函数。其实这里将Move()中的内容放在Update()函数中也行，不过为了增加代码可读性我这里写成了一个独立的函数。另外与InvokePepeating()函数类似的函数还有Invoke()函数，都是unity引擎提供的函数，具体用法可查阅官方api文档。</p>
 <p>初始化中做的另外一件事是生成我们的玩家蛇。</p>
@@ -657,172 +657,77 @@ GameObject SpawnBody(Vector2 v)
 }
 </code></pre><p>}</p>
 
-          
+      
+    </div>
+
+    <div>
+      
         
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/01/20/Hello-World/" itemprop="url">
-                  Hello World
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-01-20T15:26:45+08:00" content="2017-01-20">
-              2017-01-20
-            </time>
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/test/" itemprop="url" rel="index">
-                    <span itemprop="name">test</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/01/20/Hello-World/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/01/20/Hello-World/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-             <span id="/2017/01/20/Hello-World/" class="leancloud_visitors" data-flag-title="Hello World">
-               &nbsp; | &nbsp;
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               <span class="post-meta-item-text">阅读次数 </span>
-               <span class="leancloud-visitors-count"></span>
-              </span>
-          
-
+            <a href="/tags/unity/" rel="tag">#unity</a>
           
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <h2 id="你好，世界"><a href="#你好，世界" class="headerlink" title="你好，世界"></a>你好，世界</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>第一篇正式的技术博客。其实很早就想尝试着写写这种技术文章，因为有看到很多类似的文章，也经常能从中受益，后来有看到一篇文章是鼓励程序员去写写这种技术博客，应该是在知乎上看到的吧，总之现在开始尝试了，希望以后能一直坚持下去。</p>
-<h3 id="计划"><a href="#计划" class="headerlink" title="计划"></a>计划</h3><ol>
-<li>因为电商比赛所以这段时间要去学学Android，第好多次想要去学了，之前总是捡起来一点点就又放下了，这次一定要做出一个像样的app出来，也是自己大三这一年的计划中的一项。所以在学习安卓这段时间希望每天能记录一点点学习心得或者说是收获。</li>
-<li>之前有参加一个游戏开发的比赛，用unity做了一个类似贪吃蛇的游戏，打算把这段经历中学习到的知识理一理分享出来，万一能正好帮到哪个朋友</li>
-<li>昨天有看到学院有个新的寒假的比赛，是根据题目做一个微信小程序出来，如果有时间的话其实我感兴趣的，也希望可以趁这段时间学学做做。</li>
-</ol>
-<h3 id="今天"><a href="#今天" class="headerlink" title="今天"></a>今天</h3><p>今天一个下午几乎是都在弄这个博客了，之前有自己在阿里云上搭过一个博客，用的是wordpress，不过搭好之后就一直没有去写过文章就放在那边了。今天尝试了用hexo+github又搭了一个博客，感觉这个要更加高大上一些，毕竟时不时需要用命令行敲敲感觉更加符合程序员的（装逼）气质。并且这个让我惊喜的是DIY性很强，文章阅读数，评论系统，站点访问统计等等都是可以自己加进去的，很有意思。同时在这很感谢今天下午弄这个的时候参考到的很多有用的博客，谢谢技术大牛们。</p>
-<pre><code>Hello world，I am coming!
-</code></pre>
-          
-        
-      
-    </div>
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/20/Hello-World/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
 
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
       
 
       
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/01/31/unity3d-2/"
+     data-title="unity3d-2"
+     data-content=""
+     data-url="http://yoursite.com/2017/01/31/unity3d-2/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
 
 
           </div>
@@ -830,6 +735,14 @@ GameObject SpawnBody(Vector2 v)
 
 
           
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/01/31/unity3d-2/"
+           data-title="unity3d-2" data-url="http://yoursite.com/2017/01/31/unity3d-2/">
+      </div>
+    
+  </div>
+
 
         </div>
         
@@ -849,8 +762,17 @@ GameObject SpawnBody(Vector2 v)
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel  sidebar-panel-active ">
+      <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.jpg"
@@ -929,6 +851,17 @@ GameObject SpawnBody(Vector2 v)
 
       </section>
 
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#unity3d开发总结（二）–-玩家脚本解读"><span class="nav-number">1.</span> <span class="nav-text">unity3d开发总结（二）– 玩家脚本解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化"><span class="nav-number">1.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Update函数"><span class="nav-number">1.2.</span> <span class="nav-text">Update函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Move函数"><span class="nav-number">1.3.</span> <span class="nav-text">Move函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加速并消耗身体"><span class="nav-number">1.4.</span> <span class="nav-text">加速并消耗身体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#判断死亡"><span class="nav-number">1.5.</span> <span class="nav-text">判断死亡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#尾话"><span class="nav-number">1.6.</span> <span class="nav-text">尾话</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
       
 
     </div>
@@ -1032,6 +965,10 @@ GameObject SpawnBody(Vector2 v)
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
 
   
 
