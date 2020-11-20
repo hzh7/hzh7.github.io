@@ -1,7 +1,11 @@
 ---
 title: 利用GitHubAction自动部署Gitbook
 date: 2020-11-18 14:05:42
-tags:
+categories: 
+- 工具
+tags: 
+- GitHub Action
+- Gitbook
 ---
 
 

@@ -1,7 +1,10 @@
 ---
 title: 多个git仓库整合到一个仓库
 date: 2020-11-20 14:28:45
-tags:
+categories: 
+- 工具
+tags: 
+- git
 ---
 
 
