@@ -24,6 +24,7 @@ jobs:
               run: |
                   npm i -g hexo-cli # 安装hexo
                   npm i
+                  npm install https://github.com/CodeFalling/hexo-asset-image # 图片插件
             - name: generate_hexo
               run: |
                   hexo g
