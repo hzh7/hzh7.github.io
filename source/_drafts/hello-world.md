@@ -9,6 +9,11 @@ Welcome to [Hexo](https://hexo.io/)! This is your very first post. Check [docume
 
 ``` bash
 $ hexo new "My New Post"
+layout：post、page 和 draft
+$ hexo new [layout] <title>
+# 发布草稿
+$ hexo publish post 标题
+
 ```
 
 More info: [Writing](https://hexo.io/docs/writing.html)
