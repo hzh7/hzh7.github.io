@@ -20,7 +20,7 @@ tags:
 
 ## 开工
 
-配置流程与[利用GitHubAction自动部署Gitbook](https://hzh7.github.io/2020/11/18/%E5%88%A9%E7%94%A8GitHubAction%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2Gitbook/)一致，*action.yml*内容根据具体Hexo安装及使用即可：
+配置流程与[利用GitHubAction自动部署Gitbook](https://huzhenhao.top/2020/11/18/%E5%88%A9%E7%94%A8GitHubAction%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2Gitbook/)一致，*action.yml*内容根据具体Hexo安装及使用即可：
 
 ```yml
 name: 'Hexo Action Build'

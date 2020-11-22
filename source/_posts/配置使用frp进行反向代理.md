@@ -12,9 +12,9 @@ date: 2020-11-21 16:57:23
 
 ## 步骤
 
-### 1.下载frp
+### 下载
 
-新建一个frp目录，[下载地址](https://github.com/fatedier/frp/releases)
+新建一个frp目录放下载文件，[下载地址](https://github.com/fatedier/frp/releases)
 
 ![image-20201121155627775](配置使用frp进行反向代理/image-20201121155627775.png)
 
@@ -104,10 +104,13 @@ vim /etc/systemd/system/frp.service
 
 ```bash
 [Unit]
-Description=frps
-After=network.target
- 
-[Service]  # 路径填成自己的
+Description=fraps service
+After=network.target syslog.target
+Wants=network.target
+
+[Service]
+Type=simple 
+# 路径填成自己的(这几个中文记得删掉)
 ExecStart=/root/frp_0.31.1_linux_amd64/frps -c /root/frp_0.31.1_linux_amd64/frps.ini
  
 [Install]
@@ -117,12 +120,14 @@ WantedBy=multi-user.target
 命令：
 
 ```bash
-# 启动测试
+# 启动测试 .service 可省略
 systemctl start frp.service
 # 查看启动状态
 systemctl status frp.service
 # 开机自启
 systemctl enable frp.service
+# 重启服务
+systemctl restart frp.service
 ```
 
 ## 其他配置

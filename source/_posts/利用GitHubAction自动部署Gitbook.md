@@ -14,7 +14,7 @@ tags:
 
 ### GitHub Action
 
-昨天在逛 https://hellogithub.com/ 发现了一个有趣的项目： [Bilibili助手](https://github.com/srcrs/BilibiliTask) 。作为一个5级N多年的B站老粉，我“啪”的一下就把代码给clone下来了。
+昨天在逛 https://hellogithub.com/ 发现了一个有趣的项目： [Bilibili助手](https://github.com/srcrs/BilibiliTask) 。作为一个5级N多年的B站老粉，我“啪”的一下就把代码给clone下来了,很快的。
 
 然后昨晚打算细看代码时候发现，竟然还有比clone下来更加优雅的运行代码的方式。
 
