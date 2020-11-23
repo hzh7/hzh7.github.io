@@ -13,13 +13,13 @@ tags:
 
 Project Structure -> new Modules
 
-<img src="用Java发送电子邮件/image-20201122155533453.png" alt="image-20201122155533453" style="zoom: 67%;" />
+![image-20201122155533453](用Java发送电子邮件/image-20201122155533453.png)
 
 ## 导包
 
 - ### 下载Jar包
 
-  - ### [JavaMail API (compat)](https://mvnrepository.com/artifact/javax.mail/mail)  
+  - [JavaMail API (compat)](https://mvnrepository.com/artifact/javax.mail/mail)  
 
   - [JavaBeans(TM) Activation Framework](https://mvnrepository.com/artifact/javax.activation/activation) 
 
@@ -80,7 +80,7 @@ public class MailDemo {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 // 发件人用户名、授权码
-                return new PasswordAuthentication("hzh0608@foxmail.com", "ykfwvwywaofdbcad");
+                return new PasswordAuthentication("邮箱", "授权码");
             }
         });
         // 开启Session的debug模式，这样可以查看程序发送邮件的运行状态
