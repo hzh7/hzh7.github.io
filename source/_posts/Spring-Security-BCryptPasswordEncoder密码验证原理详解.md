@@ -221,7 +221,7 @@ $2b$10$EAnBZEeRJBqmxo.mh0kUrO
 ```
 
 ```java
-// 随便利用一个盐对明文“123456”进行加密（多次加密输出不同密文）
+// 随便利用一个盐对明文“123456”进行加密
 System.out.println(BCrypt.hashpw("123456", "$2b$10$atrUZflT0Z96W5QzTH8QUu"));
 // 输出
 $2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16
@@ -230,8 +230,10 @@ $2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16
 ```java
 // 使用相同的算法+盐值来对待校验的明文进行加密
 System.out.println(BCrypt.hashpw("123456".toString(), "$2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16"));
+System.out.println(BCrypt.checkpw("123456".toString(), "$2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16"));
 // 输出
 $2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16
+true
     
 // 把上一步密文的 hashed text 部分替换
 System.out.println(BCrypt.hashpw("123456".toString(), "$2b$10$atrUZflT0Z96W5QzTH8QUu1111111111111111111111111111111"));
