@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.jpg">
+  <link rel="icon" type="image/png" href="/img/icon.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="iHao">
+  <meta name="keywords" content="">
+  <title>Spring Security BCryptPasswordEncoder密码验证原理详解 - 心跳乱了脚步</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>心跳乱了脚步</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" target="_blank" rel="noopener" href="https://hzh7.github.io/book/">
+                <i class="iconfont icon-book"></i>
+                笔记
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Spring Security BCryptPasswordEncoder密码验证原理详解">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-12-12 22:11" pubdate>
+        2020年12月12日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      22
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Spring Security BCryptPasswordEncoder密码验证原理详解</h1>
+            
+            <div class="markdown-body">
+              <h1 id="Spring-Security-BCryptPasswordEncoder密码验证原理详解"><a href="#Spring-Security-BCryptPasswordEncoder密码验证原理详解" class="headerlink" title="Spring Security BCryptPasswordEncoder密码验证原理详解"></a>Spring Security BCryptPasswordEncoder密码验证原理详解</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>正好在学习 Spring Boot 密码加密，对 BCrypt 的加密原理很好奇，主要是不明白如何判断两个密文来自同一个明文，因为一个明文可产生多个不同的密文。</p>
+<p>以下转自：<a target="_blank" rel="noopener" href="https://www.zhangshengrong.com/p/9Oab8r76Xd/">https://www.zhangshengrong.com/p/9Oab8r76Xd/</a>  侵删</p>
+<h2 id="一、加密算法和hash算法的区别"><a href="#一、加密算法和hash算法的区别" class="headerlink" title="一、加密算法和hash算法的区别"></a>一、加密算法和hash算法的区别</h2><p>加密算法是一种可逆的算法，基本过程就是对原来为明文的文件或数据按某种算法进行处理，使其成为不可读的一段代码为“密文”，但在用相应的密钥进行操作之后就可以得到原来的内容 。</p>
+<p>哈希算法是一种不可逆的算法，是把任意长度的输入通过散列算法变换成固定长度的输出,输出就是散列值，不同的输入可能会散列成相同的输出，所以不可能从散列值来确定唯一的输入值。</p>
+<h2 id="二、源码解析"><a href="#二、源码解析" class="headerlink" title="二、源码解析"></a>二、源码解析</h2><p>BCryptPasswordEncoder类实现了PasswordEncoder接口，这个接口中定义了两个方法</p>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">PasswordEncoder</span> </span>&#123;
+  <span class="hljs-function">String <span class="hljs-title">encode</span><span class="hljs-params">(CharSequence rawPassword)</span></span>;
+  <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">matches</span><span class="hljs-params">(CharSequence rawPassword, String encodedPassword)</span></span>;
+&#125;</code></pre></div>
+
+<p>其中encode(…)是对字符串进行加密的方法，matches使用来校验传入的明文密码rawPassword是否和加密密码encodedPassword相匹配的方法。即对密码进行加密时调用encode，登录认证时调用matches</p>
+<p>下面我们来看下BCryptPasswordEncoder类中这两个方法的具体实现</p>
+<h3 id="encode方法"><a href="#encode方法" class="headerlink" title="encode方法"></a>encode方法</h3><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">encode</span><span class="hljs-params">(CharSequence rawPassword)</span> </span>&#123;
+  String salt;
+  <span class="hljs-keyword">if</span> (strength &gt; <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">if</span> (random != <span class="hljs-keyword">null</span>) &#123;
+      salt = BCrypt.gensalt(strength, random);
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+      salt = BCrypt.gensalt(strength);
+    &#125;
+  &#125;
+  <span class="hljs-keyword">else</span> &#123;
+    salt = BCrypt.gensalt();
+  &#125;
+  <span class="hljs-keyword">return</span> BCrypt.hashpw(rawPassword.toString(), salt);
+&#125;</code></pre></div>
+
+<p>可以看到，这个方法中先基于某种规则得到了一个盐值，然后在调用BCrypt.hashpw方法，传入明文密码和盐值salt。所以我们再看下BCrypt.hashpw方法中做了什么</p>
+<h3 id="BCrypt-hashpw方法"><a href="#BCrypt-hashpw方法" class="headerlink" title="BCrypt.hashpw方法"></a>BCrypt.hashpw方法</h3><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">hashpw</span><span class="hljs-params">(String password, String salt)</span> <span class="hljs-keyword">throws</span> IllegalArgumentException </span>&#123;
+    BCrypt B;
+    String real_salt;
+    <span class="hljs-keyword">byte</span> passwordb[], saltb[], hashed[];
+    <span class="hljs-keyword">char</span> minor = (<span class="hljs-keyword">char</span>) <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">int</span> rounds, off = <span class="hljs-number">0</span>;
+    StringBuilder rs = <span class="hljs-keyword">new</span> StringBuilder();
+ 
+    <span class="hljs-keyword">if</span> (salt == <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;salt cannot be null&quot;</span>);
+    &#125;
+ 
+    <span class="hljs-keyword">int</span> saltLength = salt.length();
+ 
+    <span class="hljs-keyword">if</span> (saltLength &lt; <span class="hljs-number">28</span>) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Invalid salt&quot;</span>);
+    &#125;
+ 
+    <span class="hljs-keyword">if</span> (salt.charAt(<span class="hljs-number">0</span>) != <span class="hljs-string">&#x27;$&#x27;</span> || salt.charAt(<span class="hljs-number">1</span>) != <span class="hljs-string">&#x27;2&#x27;</span>) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Invalid salt version&quot;</span>);
+    &#125;
+    <span class="hljs-keyword">if</span> (salt.charAt(<span class="hljs-number">2</span>) == <span class="hljs-string">&#x27;$&#x27;</span>) &#123;
+      off = <span class="hljs-number">3</span>;
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+      minor = salt.charAt(<span class="hljs-number">2</span>);
+      <span class="hljs-keyword">if</span> (minor != <span class="hljs-string">&#x27;a&#x27;</span> || salt.charAt(<span class="hljs-number">3</span>) != <span class="hljs-string">&#x27;$&#x27;</span>) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Invalid salt revision&quot;</span>);
+      &#125;
+      off = <span class="hljs-number">4</span>;
+    &#125;
+ 
+    <span class="hljs-keyword">if</span> (saltLength - off &lt; <span class="hljs-number">25</span>) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Invalid salt&quot;</span>);
+    &#125;
+ 
+    <span class="hljs-comment">// Extract number of rounds</span>
+    <span class="hljs-keyword">if</span> (salt.charAt(off + <span class="hljs-number">2</span>) &gt; <span class="hljs-string">&#x27;$&#x27;</span>) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Missing salt rounds&quot;</span>);
+    &#125;
+    rounds = Integer.parseInt(salt.substring(off, off + <span class="hljs-number">2</span>));
+ 
+    real_salt = salt.substring(off + <span class="hljs-number">3</span>, off + <span class="hljs-number">25</span>);
+    <span class="hljs-keyword">try</span> &#123;
+      passwordb = (password + (minor &gt;= <span class="hljs-string">&#x27;a&#x27;</span> ? <span class="hljs-string">&quot;\000&quot;</span> : <span class="hljs-string">&quot;&quot;</span>)).getBytes(<span class="hljs-string">&quot;UTF-8&quot;</span>);
+    &#125;
+    <span class="hljs-keyword">catch</span> (UnsupportedEncodingException uee) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> AssertionError(<span class="hljs-string">&quot;UTF-8 is not supported&quot;</span>);
+    &#125;
+ 
+    saltb = decode_base64(real_salt, BCRYPT_SALT_LEN);
+ 
+    B = <span class="hljs-keyword">new</span> BCrypt();
+    hashed = B.crypt_raw(passwordb, saltb, rounds);
+ 
+    rs.append(<span class="hljs-string">&quot;$2&quot;</span>);
+    <span class="hljs-keyword">if</span> (minor &gt;= <span class="hljs-string">&#x27;a&#x27;</span>) &#123;
+      rs.append(minor);
+    &#125;
+    rs.append(<span class="hljs-string">&quot;$&quot;</span>);
+    <span class="hljs-keyword">if</span> (rounds &lt; <span class="hljs-number">10</span>) &#123;
+      rs.append(<span class="hljs-string">&quot;0&quot;</span>);
+    &#125;
+    rs.append(rounds);
+    rs.append(<span class="hljs-string">&quot;$&quot;</span>);
+    encode_base64(saltb, saltb.length, rs);
+    encode_base64(hashed, bf_crypt_ciphertext.length * <span class="hljs-number">4</span> - <span class="hljs-number">1</span>, rs);
+    <span class="hljs-keyword">return</span> rs.toString();
+  &#125;</code></pre></div>
+
+<p>可以看到，这个方法中先根据传入的盐值salt,然后基于某种规则从salt得到real_salt,后续的操作都是用这个real_salt来进行，最终得到加密字符串。</p>
+<p>所以这里有一个重点:传入的盐值salt并不是最终用来加密的盐，方法中通过salt得到了real_salt，记住这一点，因为后边的匹配方法matches中要用到这一点。</p>
+<h3 id="matches方法"><a href="#matches方法" class="headerlink" title="matches方法"></a>matches方法</h3><p>matches方法用来判断一个明文是否和一个加密字符串对应。</p>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">matches</span><span class="hljs-params">(CharSequence rawPassword, String encodedPassword)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (encodedPassword == <span class="hljs-keyword">null</span> || encodedPassword.length() == <span class="hljs-number">0</span>) &#123;
+    logger.warn(<span class="hljs-string">&quot;Empty encoded password&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+  &#125;
+ 
+  <span class="hljs-keyword">if</span> (!BCRYPT_PATTERN.matcher(encodedPassword).matches()) &#123;
+    logger.warn(<span class="hljs-string">&quot;Encoded password does not look like BCrypt&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+  &#125;
+  <span class="hljs-keyword">return</span> BCrypt.checkpw(rawPassword.toString(), encodedPassword);
+&#125;</code></pre></div>
+
+<p>这个方法中先对密文字符串进行了一些校验，如果不符合规则直接返回不匹配，然后调用校验方法BCrypt.checkpw，第一个参数是明文，第二个参数是加密后的字符串。</p>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">checkpw</span><span class="hljs-params">(String plaintext, String hashed)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> equalsNoEarlyReturn(hashed, hashpw(plaintext, hashed));
+&#125;
+ 
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">equalsNoEarlyReturn</span><span class="hljs-params">(String a, String b)</span> </span>&#123;
+  <span class="hljs-keyword">char</span>[] caa = a.toCharArray();
+  <span class="hljs-keyword">char</span>[] cab = b.toCharArray();
+ 
+  <span class="hljs-keyword">if</span> (caa.length != cab.length) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+  &#125;
+ 
+  <span class="hljs-keyword">byte</span> ret = <span class="hljs-number">0</span>;
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; caa.length; i++) &#123;
+    ret |= caa[i] ^ cab[i];
+  &#125;
+  <span class="hljs-keyword">return</span> ret == <span class="hljs-number">0</span>;
+&#125;</code></pre></div>
+
+<p>注意 equalsNoEarlyReturn(hashed, hashpw(plaintext, hashed))这里，第一个参数是加密后的字符串，而第二个参数是用刚才提过的hashpw方法对明文字符串进行加密。</p>
+<p>hashpw(plaintext, hashed)第一个参数是明文，第二个参数是加密字符串，但是在这里是作为盐值salt传入的，所以就用到了刚才说的 hashpw 内部通过传入的salt得到real_salt，这样就保证了对现在要校验的明文的加密和得到已有密文的加密用的是同样的加密策略，算法和盐值都相同，这样如果新产生的密文和原来的密文相同，则这两个密文对应的明文字符串就是相等的。</p>
+<p>这也说明了加密时使用的盐值被写在了最终生成的加密字符串中。</p>
+<h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>BCryptPasswordEncoder使用哈希算法+随机盐来对字符串加密。因为哈希是一种不可逆算法，所以密码认证时需要使用相同的算法+盐值来对待校验的明文进行加密，然后比较这两个密文来进行验证。BCryptPasswordEncoder在加密时通过从传入的salt中获取real_salt用来加密，保证了这一点。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>密文的组成：</p>
+<p><img src="/2020/12/12/Spring-Security-BCryptPasswordEncoder%E5%AF%86%E7%A0%81%E9%AA%8C%E8%AF%81%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/hash-anatomy.png" srcset="/img/loading.gif" alt="Password Security Part 3: The Anatomy of a Hash"></p>
+<p>跑几个代码验证一下：</p>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// 手动生成不同的盐</span>
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;
+    System.out.println(BCrypt.gensalt(<span class="hljs-string">&quot;$2a&quot;</span>, <span class="hljs-number">10</span>, <span class="hljs-keyword">new</span> SecureRandom()));
+&#125;
+<span class="hljs-comment">// 输出：</span>
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$atrUZflT0Z96W5QzTH8QUu
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$RCxX16r15iiJaP47FXmvHO
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$CqTFDEm1VrzqUUA2jKX8X.
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$<span class="hljs-number">4</span>orD1IF4CL81oIF60PD.Du
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$L04sCj.<span class="hljs-number">38</span>QUgBAOPPMEbLO
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$K1zE3wyJN3u./zzk7TH6v.
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$FI9NbDk3TAaur51SSGRKAu
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$cHus3QzX8YFCEpa06qrnbe
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$/<span class="hljs-number">9</span>X3oRtruMy.dIwvWWIdQO
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$EAnBZEeRJBqmxo.mh0kUrO</code></pre></div>
+
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// 随便利用一个盐对明文“123456”进行加密</span>
+System.out.println(BCrypt.hashpw(<span class="hljs-string">&quot;123456&quot;</span>, <span class="hljs-string">&quot;$2b$10$atrUZflT0Z96W5QzTH8QUu&quot;</span>));
+<span class="hljs-comment">// 输出</span>
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/<span class="hljs-number">16</span></code></pre></div>
+
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// 使用相同的算法+盐值来对待校验的明文进行加密</span>
+System.out.println(BCrypt.hashpw(<span class="hljs-string">&quot;123456&quot;</span>.toString(), <span class="hljs-string">&quot;$2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16&quot;</span>));
+System.out.println(BCrypt.checkpw(<span class="hljs-string">&quot;123456&quot;</span>.toString(), <span class="hljs-string">&quot;$2b$10$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/16&quot;</span>));
+<span class="hljs-comment">// 输出</span>
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/<span class="hljs-number">16</span>
+<span class="hljs-keyword">true</span>
+    
+<span class="hljs-comment">// 把上一步密文的 hashed text 部分替换</span>
+System.out.println(BCrypt.hashpw(<span class="hljs-string">&quot;123456&quot;</span>.toString(), <span class="hljs-string">&quot;$2b$10$atrUZflT0Z96W5QzTH8QUu1111111111111111111111111111111&quot;</span>));
+<span class="hljs-comment">// 输出依旧是：</span>
+$<span class="hljs-number">2</span>b$<span class="hljs-number">10</span>$atrUZflT0Z96W5QzTH8QUus0onZp2bl8Q3r8rrmSevygkGqIbe/<span class="hljs-number">16</span></code></pre></div>
+
+<p>所以<strong>密码认证时的关键</strong>是 需要使用相同的算法+盐值来对待校验的明文进行加密，然后比较这两个密文来进行验证。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Spring-Boot/">Spring Boot</a>
+                    
+                      <a class="hover-with-bg" href="/tags/BCrypt-%E5%8A%A0%E5%AF%86/">BCrypt 加密</a>
+                    
+                  </div>
+                
+              </div>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/21/Docker%E5%AE%89%E8%A3%85ActiveMQ%E5%92%8CRabbitMQ/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Docker安装ActiveMQ和RabbitMQ</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/11/30/Docker%E6%90%AD%E5%BB%BARedis%E9%9B%86%E7%BE%A4/">
+                        <span class="hidden-mobile">Docker搭建Redis集群</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="SOHUCS" sid='http://example.com/2020/12/12/Spring-Security-BCryptPasswordEncoder%E5%AF%86%E7%A0%81%E9%AA%8C%E8%AF%81%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/'></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('SOHUCS', function() {
+      var appid = 'cyvaqSeXx';
+      var conf = 'prod_4e6cd3dffbc5df359831eeb2dfe29666';
+      var width = window.innerWidth || document.documentElement.clientWidth;
+      if (width < 960) {
+        window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="http://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+      } else {
+        Fluid.utils.createScript("https://changyan.sohu.com/upload/changyan.js", function() {
+          window.changyan.api.config({
+            appid: appid,
+            conf: conf
+          })
+        });
+      }
+    })
+  </script>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,642 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.jpg">
+  <link rel="icon" type="image/png" href="/img/icon.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="iHao">
+  <meta name="keywords" content="">
+  <title>配置使用frp进行反向代理 - 心跳乱了脚步</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>心跳乱了脚步</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" target="_blank" rel="noopener" href="https://hzh7.github.io/book/">
+                <i class="iconfont icon-book"></i>
+                笔记
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="配置使用frp进行反向代理">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-11-21 16:57" pubdate>
+        2020年11月21日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      800 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      11
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">配置使用frp进行反向代理</h1>
+            
+            <div class="markdown-body">
+              <h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>新建一个frp目录放下载文件，<a target="_blank" rel="noopener" href="https://github.com/fatedier/frp/releases">下载地址</a></p>
+<p><img src="/2020/11/21/%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8frp%E8%BF%9B%E8%A1%8C%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/image-20201121155627775.png" srcset="/img/loading.gif" alt="image-20201121155627775"></p>
+<p>我这里是x86的Linux系统，所以下载了 frp_0.34.3_linux_386.tar.gz ，命令如下：</p>
+<div class="hljs"><pre><code class="hljs bash">wget https://github.com/fatedier/frp/releases/download/v0.34.3/frp_0.34.3_linux_386.tar.gz</code></pre></div>
+
+<p>服务端和客户端都需要下载并安装。这里的服务端指有公网ip的服务器，客户端指需要被代理的内网机器。</p>
+<h3 id="解压"><a href="#解压" class="headerlink" title="解压"></a>解压</h3><div class="hljs"><pre><code class="hljs bash">tar -zxvf  frp_*.tar.gz</code></pre></div>
+
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>以 ssh 为例</p>
+<h4 id="服务端配置"><a href="#服务端配置" class="headerlink" title="服务端配置"></a>服务端配置</h4><p><code>frps.ini</code></p>
+<div class="hljs"><pre><code class="hljs ini"><span class="hljs-section">[common]</span>
+<span class="hljs-attr">bind_port</span> = <span class="hljs-number">7000</span>           <span class="hljs-comment">#与客户端绑定的进行通信的端口</span>
+
+<span class="hljs-comment"># auth token</span>
+<span class="hljs-attr">token</span> = <span class="hljs-number">1234</span>
+
+<span class="hljs-comment"># dashboard_addr = 0.0.0.0</span>
+<span class="hljs-comment"># dashboard_port = 7500</span>
+<span class="hljs-comment"># 仪表盘访问的用户名密码，如果不设置，则默认都是 admin</span>
+<span class="hljs-comment"># dashboard_user = admin</span>
+<span class="hljs-comment"># dashboard_pwd = admin</span></code></pre></div>
+
+<h4 id="客户端配置"><a href="#客户端配置" class="headerlink" title="客户端配置"></a>客户端配置</h4><p><code>frpc.ini</code></p>
+<div class="hljs"><pre><code class="hljs ini"><span class="hljs-section">[common]</span>
+<span class="hljs-attr">server_addr</span> = <span class="hljs-number">120.56</span>.<span class="hljs-number">37.48</span>   <span class="hljs-comment">#公网服务器ip</span>
+<span class="hljs-attr">server_port</span> = <span class="hljs-number">7000</span>            <span class="hljs-comment">#与服务端bind_port一致</span>
+<span class="hljs-comment"># auth token</span>
+<span class="hljs-attr">token</span> = abcd1234567890
+
+<span class="hljs-comment">#公网通过ssh访问内部服务器</span>
+<span class="hljs-section">[ssh]</span>
+<span class="hljs-attr">type</span> = tcp              <span class="hljs-comment">#连接协议</span>
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">192.168</span>.<span class="hljs-number">1.48</span> <span class="hljs-comment">#内网服务器ip</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">22</span>         <span class="hljs-comment">#ssh默认端口号</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">6000</span>      <span class="hljs-comment">#自定义的访问内部ssh端口号</span></code></pre></div>
+
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><div class="hljs"><pre><code class="hljs bash"><span class="hljs-comment"># 服务端</span>
+nohup ./frps -c ./frps.ini &amp;
+<span class="hljs-comment"># 客户端 </span>
+nohup ./frpc -c ./frpc.ini &amp;</code></pre></div>
+
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><div class="hljs"><pre><code class="hljs bash">ssh root@42.xxx -p 6000</code></pre></div>
+
+<p>即可登录内网的机器，相当于使用了 <code>ssh root@192.168.1.48 -p 22</code></p>
+<h3 id="配置开机自启"><a href="#配置开机自启" class="headerlink" title="配置开机自启"></a>配置开机自启</h3><p>设置 frps 服务开机自启动，方法参考如下。</p>
+<p>创建后台启动服务文件：</p>
+<div class="hljs"><pre><code class="hljs bash">vim /etc/systemd/system/frp.service</code></pre></div>
+
+<p>内容：</p>
+<div class="hljs"><pre><code class="hljs bash">[Unit]
+Description=fraps service
+After=network.target syslog.target
+Wants=network.target
+
+[Service]
+Type=simple 
+<span class="hljs-comment"># 路径填成自己的(这几个中文记得删掉)</span>
+ExecStart=/root/frp_0.31.1_linux_amd64/frps -c /root/frp_0.31.1_linux_amd64/frps.ini
+ 
+[Install]
+WantedBy=multi-user.target</code></pre></div>
+
+<p>命令：</p>
+<div class="hljs"><pre><code class="hljs bash"><span class="hljs-comment"># 启动测试 .service 可省略</span>
+systemctl start frp.service
+<span class="hljs-comment"># 查看启动状态</span>
+systemctl status frp.service
+<span class="hljs-comment"># 开机自启</span>
+systemctl <span class="hljs-built_in">enable</span> frp.service
+<span class="hljs-comment"># 重启服务</span>
+systemctl restart frp.service</code></pre></div>
+
+<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><div class="hljs"><pre><code class="hljs ini"><span class="hljs-section">[common]</span>
+<span class="hljs-attr">server_addr</span> = <span class="hljs-number">42</span>.xxx.xxx.xxx 
+<span class="hljs-attr">server_port</span> = <span class="hljs-number">7000</span>
+<span class="hljs-comment"># auth token</span>
+<span class="hljs-attr">token</span> = abcd1234567890
+
+<span class="hljs-section">[web]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">80</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">8080</span>
+
+<span class="hljs-section">[ftp]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">21</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">8082</span>
+
+<span class="hljs-section">[ftp_port1]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">5100</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">5100</span>
+
+
+<span class="hljs-section">[ftp_port2]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">5101</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">5101</span>
+
+
+<span class="hljs-section">[ftp_port3]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">5102</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">5102</span>
+
+<span class="hljs-section">[rdp]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">3389</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">3389</span>
+
+<span class="hljs-section">[ssh]</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">22</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">2222</span>
+<span class="hljs-attr">use_encryption</span> = <span class="hljs-literal">true</span>
+<span class="hljs-attr">use_compression</span> = <span class="hljs-literal">false</span></code></pre></div>
+
+<p>远程桌面配置参考， 客户端 <code>frpc.ini</code>：</p>
+<div class="hljs"><pre><code class="hljs ini"><span class="hljs-section">[common]</span>
+<span class="hljs-comment"># 服务器的 IP</span>
+<span class="hljs-attr">server_addr</span> = <span class="hljs-number">42</span>.XXX
+<span class="hljs-comment"># 服务器上设置的服务绑定端口(frps.ini 中的 bind_port)</span>
+<span class="hljs-attr">server_port</span> = <span class="hljs-number">7000</span>
+ 
+<span class="hljs-comment"># 安全授权 token，需与服务端设置一致</span>
+<span class="hljs-attr">token</span> = <span class="hljs-number">12345678</span>
+ 
+<span class="hljs-section">[RDP]</span> <span class="hljs-comment"># 反向代理名称，可以随意设置</span>
+<span class="hljs-comment"># RDP 是 TCP 协议的</span>
+<span class="hljs-attr">type</span> = tcp
+<span class="hljs-comment"># 本机 IP</span>
+<span class="hljs-attr">local_ip</span> = <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>
+<span class="hljs-comment"># 远程桌面的默认端口</span>
+<span class="hljs-attr">local_port</span> = <span class="hljs-number">3389</span>
+<span class="hljs-comment"># 外网访问的端口</span>
+<span class="hljs-attr">remote_port</span> = <span class="hljs-number">7001</span>
+<span class="hljs-comment"># 外网访问的域名，建议配置</span>
+<span class="hljs-comment"># custom_domains = frp.lzw.me</span>
+ 
+<span class="hljs-comment"># 如果是linux，可设置 ssh。在控制端就可以用 server_addr:remote_port 作为 ssh 登陆地址</span>
+<span class="hljs-comment"># [ssh]</span>
+<span class="hljs-comment"># type = tcp</span>
+<span class="hljs-comment"># local_ip = 127.0.0.1</span>
+<span class="hljs-comment"># local_port = 22</span>
+<span class="hljs-comment"># remote_port = 2222</span>
+ 
+<span class="hljs-comment"># 设置一个 http 服务 web</span>
+<span class="hljs-comment"># [web]</span>
+<span class="hljs-comment"># type = http</span>
+<span class="hljs-comment"># local_port = 80</span>
+<span class="hljs-comment"># custom_domains = frpweb.lzw.me</span>
+ 
+<span class="hljs-comment"># 设置一个代理服务。在控制端就可以用 server_addr:remote_port 作为代理地址</span>
+<span class="hljs-comment"># [http_proxy]</span>
+<span class="hljs-comment"># type = tcp</span>
+<span class="hljs-comment"># remote_port = 6000</span>
+<span class="hljs-comment"># plugin = http_proxy</span></code></pre></div>
+
+
+
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://lzw.me/a/frp-windows-mstsc.html">使用 FRP 实现在家远程桌面到公司内网进行远程办公</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013144287/article/details/78589643">十分钟教你配置frp实现内网穿透</a></li>
+<li><a target="_blank" rel="noopener" href="https://canwdev.github.io/manual/setup-frp.html#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF-%C2%B7-frps">安装 frp 内网穿透工具</a></li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/frp/">frp</a>
+                    
+                  </div>
+                
+              </div>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/11/23/%E7%94%A8Java%E5%8F%91%E9%80%81%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">用Java发送电子邮件</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/11/20/%E5%88%A9%E7%94%A8GitHubAction%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2Hexo/">
+                        <span class="hidden-mobile">利用GitHubAction自动部署Hexo</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="SOHUCS" sid='http://example.com/2020/11/21/%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8frp%E8%BF%9B%E8%A1%8C%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/'></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('SOHUCS', function() {
+      var appid = 'cyvaqSeXx';
+      var conf = 'prod_4e6cd3dffbc5df359831eeb2dfe29666';
+      var width = window.innerWidth || document.documentElement.clientWidth;
+      if (width < 960) {
+        window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="http://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+      } else {
+        Fluid.utils.createScript("https://changyan.sohu.com/upload/changyan.js", function() {
+          window.changyan.api.config({
+            appid: appid,
+            conf: conf
+          })
+        });
+      }
+    })
+  </script>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

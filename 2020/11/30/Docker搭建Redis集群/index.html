@@ -1,0 +1,742 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon.jpg">
+  <link rel="icon" type="image/png" href="/img/icon.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="iHao">
+  <meta name="keywords" content="">
+  <title>Docker搭建Redis集群 - 心跳乱了脚步</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>心跳乱了脚步</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" target="_blank" rel="noopener" href="https://hzh7.github.io/book/">
+                <i class="iconfont icon-book"></i>
+                笔记
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Docker搭建Redis集群">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-11-30 11:01" pubdate>
+        2020年11月30日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      31
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Docker搭建Redis集群</h1>
+            
+            <div class="markdown-body">
+              <h1 id="Docker搭建Redis集群"><a href="#Docker搭建Redis集群" class="headerlink" title="Docker搭建Redis集群"></a>Docker搭建Redis集群</h1><p>本篇博客主要参考了<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021882802">这篇文章</a>，也有一些小变动，记录一下方便自己之后需要。</p>
+<h2 id="编辑配置"><a href="#编辑配置" class="headerlink" title="编辑配置"></a>编辑配置</h2><h3 id="配置模板"><a href="#配置模板" class="headerlink" title="配置模板"></a>配置模板</h3><p> <code>redis-cluster.tmpl</code></p>
+<div class="hljs"><pre><code class="hljs properties"><span class="hljs-comment"># redis端口</span>
+<span class="hljs-attr">port</span> <span class="hljs-string">$&#123;PORT&#125;</span>
+<span class="hljs-comment"># 关闭保护模式</span>
+<span class="hljs-meta">protected-mode</span> <span class="hljs-string">no</span>
+<span class="hljs-comment"># 开启集群</span>
+<span class="hljs-meta">cluster-enabled</span> <span class="hljs-string">yes</span>
+<span class="hljs-comment"># 集群节点配置</span>
+<span class="hljs-meta">cluster-config-file</span> <span class="hljs-string">nodes.conf</span>
+<span class="hljs-comment"># 超时</span>
+<span class="hljs-meta">cluster-node-timeout</span> <span class="hljs-string">5000</span>
+<span class="hljs-comment"># 集群节点IP host模式为宿主机IP</span>
+<span class="hljs-meta">cluster-announce-ip</span> <span class="hljs-string">192.xxx</span>
+<span class="hljs-comment"># 集群节点端口 7001 - 7006</span>
+<span class="hljs-meta">cluster-announce-port</span> <span class="hljs-string">$&#123;PORT&#125;</span>
+<span class="hljs-meta">cluster-announce-bus-port</span> <span class="hljs-string">1$&#123;PORT&#125;</span>
+<span class="hljs-comment"># 开启 appendonly 备份模式</span>
+<span class="hljs-attr">appendonly</span> <span class="hljs-string">yes</span>
+<span class="hljs-comment"># 每秒钟备份</span>
+<span class="hljs-attr">appendfsync</span> <span class="hljs-string">everysec</span>
+<span class="hljs-comment"># 对aof文件进行压缩时，是否执行同步操作</span>
+<span class="hljs-meta">no-appendfsync-on-rewrite</span> <span class="hljs-string">no</span>
+<span class="hljs-comment"># 当目前aof文件大小超过上一次重写时的aof文件大小的100%时会再次进行重写</span>
+<span class="hljs-meta">auto-aof-rewrite-percentage</span> <span class="hljs-string">100</span>
+<span class="hljs-comment"># 重写前AOF文件的大小最小值 默认 64mb</span>
+<span class="hljs-meta">auto-aof-rewrite-min-size</span> <span class="hljs-string">64mb</span></code></pre></div>
+
+<h3 id="生成配置脚本-redis-cluster-config-sh"><a href="#生成配置脚本-redis-cluster-config-sh" class="headerlink" title="生成配置脚本 redis-cluster-config.sh"></a>生成配置脚本 <code>redis-cluster-config.sh</code></h3><div class="hljs"><pre><code class="hljs sh"><span class="hljs-keyword">for</span> port <span class="hljs-keyword">in</span> `seq 7001 7006`; <span class="hljs-keyword">do</span> \
+  mkdir -p ./redis-cluster/<span class="hljs-variable">$&#123;port&#125;</span>/conf \
+  &amp;&amp; PORT=<span class="hljs-variable">$&#123;port&#125;</span> envsubst &lt; ./redis-cluster.tmpl &gt; ./redis-cluster/<span class="hljs-variable">$&#123;port&#125;</span>/conf/redis.conf \
+  &amp;&amp; mkdir -p ./redis-cluster/<span class="hljs-variable">$&#123;port&#125;</span>/data; \
+<span class="hljs-keyword">done</span></code></pre></div>
+
+<h3 id="利用脚本批量生成配置"><a href="#利用脚本批量生成配置" class="headerlink" title="利用脚本批量生成配置"></a>利用脚本批量生成配置</h3><div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ chmod +x redis-cluster-config.sh
+[hzh@localhost redis]$ ./redis-cluster-config.sh</code></pre></div>
+
+<div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ tree
+.
+├── redis-cluster
+│   ├── 7001
+│   │   ├── conf
+│   │   │   └── redis.conf
+│   │   └── data
+│   ├── 7002
+│   │   ├── conf
+│   │   │   └── redis.conf
+│   │   └── data
+│   ├── 7003
+│   │   ├── conf
+│   │   │   └── redis.conf
+│   │   └── data
+│   ├── 7004
+│   │   ├── conf
+│   │   │   └── redis.conf
+│   │   └── data
+│   ├── 7005
+│   │   ├── conf
+│   │   │   └── redis.conf
+│   │   └── data
+│   └── 7006
+│       ├── conf
+│       │   └── redis.conf
+│       └── data
+├── redis-cluster-config.sh</code></pre></div>
+
+<h2 id="生成容器"><a href="#生成容器" class="headerlink" title="生成容器"></a>生成容器</h2><p>docker-compose 配置批量</p>
+<p><code>docker-compose-redis-cluster.yml</code></p>
+<div class="hljs"><pre><code class="hljs yml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;3.7&#x27;</span>
+
+<span class="hljs-attr">services:</span>
+  <span class="hljs-attr">redis7001:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7001</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7001/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7001/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7001:7001&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17001:17001&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span>
+
+  <span class="hljs-attr">redis7002:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7002</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7002/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7002/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7002:7002&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17002:17002&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span>
+
+  <span class="hljs-attr">redis7003:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7003</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7003/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7003/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7003:7003&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17003:17003&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span>
+
+  <span class="hljs-attr">redis7004:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7004</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7004/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7004/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7004:7004&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17004:17004&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span>
+
+  <span class="hljs-attr">redis7005:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7005</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7005/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7005/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7005:7005&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17005:17005&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span>
+
+  <span class="hljs-attr">redis7006:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">&#x27;redis&#x27;</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">redis7006</span>
+    <span class="hljs-attr">command:</span>
+      [<span class="hljs-string">&quot;redis-server&quot;</span>, <span class="hljs-string">&quot;/usr/local/etc/redis/redis.conf&quot;</span>]
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7006/conf/redis.conf:/usr/local/etc/redis/redis.conf</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./redis-cluster/7006/data:/data</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;7006:7006&quot;</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;17006:17006&quot;</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-comment"># 设置时区为上海，否则时间会有问题</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">TZ=Asia/Shanghai</span></code></pre></div>
+
+<h3 id="执行生成命令"><a href="#执行生成命令" class="headerlink" title="执行生成命令"></a>执行生成命令</h3><div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ docker-compose -f docker-compose-redis-cluster.yml up -d
+bash: docker-compose: <span class="hljs-built_in">command</span> not found...
+[hzh@localhost redis]$ pip3 install --user docker-compose  <span class="hljs-comment"># 安装docker-compose</span></code></pre></div>
+
+<p>再次执行</p>
+<div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ docker-compose -f docker-compose-redis-cluster.yml up -d
+Creating network <span class="hljs-string">&quot;redis_default&quot;</span> with the default driver
+Creating redis7003 ... <span class="hljs-keyword">done</span>
+Creating redis7001 ... <span class="hljs-keyword">done</span>
+Creating redis7004 ... <span class="hljs-keyword">done</span>
+Creating redis7002 ... <span class="hljs-keyword">done</span>
+Creating redis7006 ... <span class="hljs-keyword">done</span>
+Creating redis7005 ... <span class="hljs-keyword">done</span>
+[hzh@localhost redis]$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS
+                                              NAMES
+8cab1789f565        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7005-&gt;7005/tcp, 6379/tcp, 0.0.0.0:17005-&gt;17005/tcp   redis7005
+1743591a742f        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7006-&gt;7006/tcp, 6379/tcp, 0.0.0.0:17006-&gt;17006/tcp   redis7006
+dd5c4405833f        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7003-&gt;7003/tcp, 6379/tcp, 0.0.0.0:17003-&gt;17003/tcp   redis7003
+f3d813dfbfdd        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7001-&gt;7001/tcp, 6379/tcp, 0.0.0.0:17001-&gt;17001/tcp   redis7001
+269f81bfcd6b        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7002-&gt;7002/tcp, 6379/tcp, 0.0.0.0:17002-&gt;17002/tcp   redis7002
+9b978437186d        redis               <span class="hljs-string">&quot;docker-entrypoint.s…&quot;</span>   24 seconds ago      Up 23 seconds       0.0.0.0:7004-&gt;7004/tcp, 6379/tcp, 0.0.0.0:17004-&gt;17004/tcp   redis7004</code></pre></div>
+
+<h2 id="开启集群"><a href="#开启集群" class="headerlink" title="开启集群"></a>开启集群</h2><div class="hljs"><pre><code class="hljs bash">docker <span class="hljs-built_in">exec</span> -it redis7001 redis-cli -p 7001 --cluster create 59.78.194.153:7001 59.78.194.153:7002 59.78.194.153:7003 59.78.194.153:7004 59.78.194.153:7005 59.78.194.153:7006 --cluster-replicas 1</code></pre></div>
+
+<p>可能会报错，这里是因为端口没有开放。记得不仅要开放7001-7006端口，还需要开放17001-17006端口，不然开启集群时会卡在Waiting for the cluster to join 。因为1700X端口是集群通信端口。</p>
+<div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ su
+Password:
+(base) [root@localhost redis]<span class="hljs-comment"># firewall-cmd --zone=public --add-port=7001/tcp --permanent</span>
+success
+......
+(base) [root@localhost redis]<span class="hljs-comment"># firewall-cmd --zone=public --add-port=7006/tcp --permanent</span>
+success
+......
+(base) [root@localhost redis]<span class="hljs-comment"># firewall-cmd --zone=public --add-port=17006/tcp --permanent</span>
+success
+(base) [root@localhost redis]<span class="hljs-comment"># firewall-cmd --reload</span>
+success</code></pre></div>
+
+<p>再次执行</p>
+<div class="hljs"><pre><code class="hljs bash">[hzh@localhost redis]$ docker <span class="hljs-built_in">exec</span> -it redis7001 redis-cli -p 7001 --cluster create 59.78.194.153:7001 59.78.194.153:7002 59.78.194.153:7003 59.78.194.153:7004 59.78.194.153:7005 59.78.194.153:7006 --cluster-replicas 1
+&gt;&gt;&gt; Performing <span class="hljs-built_in">hash</span> slots allocation on 6 nodes...
+Master[0] -&gt; Slots 0 - 5460
+Master[1] -&gt; Slots 5461 - 10922
+Master[2] -&gt; Slots 10923 - 16383
+Adding replica 59.78.194.153:7005 to 59.78.194.153:7001
+Adding replica 59.78.194.153:7006 to 59.78.194.153:7002
+Adding replica 59.78.194.153:7004 to 59.78.194.153:7003
+&gt;&gt;&gt; Trying to optimize slaves allocation <span class="hljs-keyword">for</span> anti-affinity
+[WARNING] Some slaves are <span class="hljs-keyword">in</span> the same host as their master
+M: e2cd40d097ea688af18cd022883fa13a8afd5ef3 59.78.194.153:7001
+   slots:[0-5460] (5461 slots) master
+M: a698698fbe9ce85e7448bcb27ba5f19f0d175207 59.78.194.153:7002
+   slots:[5461-10922] (5462 slots) master
+M: 51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4 59.78.194.153:7003
+   slots:[10923-16383] (5461 slots) master
+S: 14f8fbba8b2e9623865dd9453f22b63bd914ef13 59.78.194.153:7004
+   replicates a698698fbe9ce85e7448bcb27ba5f19f0d175207
+S: 003c2b6cad73550648f93ba3257abcf085b347e0 59.78.194.153:7005
+   replicates 51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4
+S: 112ce7ce41c2930f6ce8507ffe3880e36e319cac 59.78.194.153:7006
+   replicates e2cd40d097ea688af18cd022883fa13a8afd5ef3
+Can I <span class="hljs-built_in">set</span> the above configuration? (<span class="hljs-built_in">type</span> <span class="hljs-string">&#x27;yes&#x27;</span> to accept): yes
+&gt;&gt;&gt; Nodes configuration updated
+&gt;&gt;&gt; Assign a different config epoch to each node
+&gt;&gt;&gt; Sending CLUSTER MEET messages to join the cluster
+Waiting <span class="hljs-keyword">for</span> the cluster to join
+.
+&gt;&gt;&gt; Performing Cluster Check (using node 59.78.194.153:7001)
+M: e2cd40d097ea688af18cd022883fa13a8afd5ef3 59.78.194.153:7001
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+M: a698698fbe9ce85e7448bcb27ba5f19f0d175207 59.78.194.153:7002
+   slots:[5461-10922] (5462 slots) master
+   1 additional replica(s)
+S: 14f8fbba8b2e9623865dd9453f22b63bd914ef13 59.78.194.153:7004
+   slots: (0 slots) slave
+   replicates a698698fbe9ce85e7448bcb27ba5f19f0d175207
+S: 112ce7ce41c2930f6ce8507ffe3880e36e319cac 59.78.194.153:7006
+   slots: (0 slots) slave
+   replicates e2cd40d097ea688af18cd022883fa13a8afd5ef3
+S: 003c2b6cad73550648f93ba3257abcf085b347e0 59.78.194.153:7005
+   slots: (0 slots) slave
+   replicates 51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4
+M: 51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4 59.78.194.153:7003
+   slots:[10923-16383] (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check <span class="hljs-keyword">for</span> open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.</code></pre></div>
+
+<h2 id="简单测试"><a href="#简单测试" class="headerlink" title="简单测试"></a>简单测试</h2><div class="hljs"><pre><code class="hljs bash">&gt; 59.78.194.153@7001 connected!
+&gt; <span class="hljs-built_in">set</span> name admin
+OK
+&gt; get name
+admin</code></pre></div>
+
+<div class="hljs"><pre><code class="hljs bash">&gt; 59.78.194.153@7002 connected!
+&gt; get name
+admin</code></pre></div>
+
+<p>查看集群状态</p>
+<div class="hljs"><pre><code class="hljs bash">&gt; 59.78.194.153@7001 connected!
+&gt; cluster nodes
+e2cd40d097ea688af18cd022883fa13a8afd5ef3 59.78.194.153:7001@17001 master - 0 1606736718359 1 connected 0-5460
+14f8fbba8b2e9623865dd9453f22b63bd914ef13 59.78.194.153:7004@17004 slave a698698fbe9ce85e7448bcb27ba5f19f0d175207 0 1606736718000 2 connected
+003c2b6cad73550648f93ba3257abcf085b347e0 59.78.194.153:7005@17005 slave 51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4 0 1606736718560 3 connected
+112ce7ce41c2930f6ce8507ffe3880e36e319cac 59.78.194.153:7006@17006 slave e2cd40d097ea688af18cd022883fa13a8afd5ef3 0 1606736716854 1 connected
+a698698fbe9ce85e7448bcb27ba5f19f0d175207 59.78.194.153:7002@17002 myself,master - 0 1606736717000 2 connected 5461-10922
+51f55fa1094c0eed9a2ff8121a4923e9a86ff0d4 59.78.194.153:7003@17003 master - 0 1606736718560 3 connected 10923-16383</code></pre></div>
+
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021882802">https://segmentfault.com/a/1190000021882802</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/XIANZHIXIANZHIXIAN/article/details/82392172">https://blog.csdn.net/XIANZHIXIANZHIXIAN/article/details/82392172</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Docker/">Docker</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Redis%E9%9B%86%E7%BE%A4/">Redis集群</a>
+                    
+                  </div>
+                
+              </div>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/12/Spring-Security-BCryptPasswordEncoder%E5%AF%86%E7%A0%81%E9%AA%8C%E8%AF%81%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Security BCryptPasswordEncoder密码验证原理详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/11/30/Docker%E9%87%8C%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8Redis/">
+                        <span class="hidden-mobile">Docker里安装使用Redis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="SOHUCS" sid='http://example.com/2020/11/30/Docker%E6%90%AD%E5%BB%BARedis%E9%9B%86%E7%BE%A4/'></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('SOHUCS', function() {
+      var appid = 'cyvaqSeXx';
+      var conf = 'prod_4e6cd3dffbc5df359831eeb2dfe29666';
+      var width = window.innerWidth || document.documentElement.clientWidth;
+      if (width < 960) {
+        window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="http://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+      } else {
+        Fluid.utils.createScript("https://changyan.sohu.com/upload/changyan.js", function() {
+          window.changyan.api.config({
+            appid: appid,
+            conf: conf
+          })
+        });
+      }
+    })
+  </script>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
